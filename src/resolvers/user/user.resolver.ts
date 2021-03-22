@@ -8,11 +8,11 @@ import {
   Parent,
 } from '@nestjs/graphql';
 
-import { GqlAuthGuard } from '../../guards/gql-auth.guard';
-import { UserEntity } from '../../decorators/user.decorator';
+import { GqlAuthGuard } from '../../guards';
+import { UserEntity } from '../../decorators';
 import { PrismaService, UserService } from '../../services';
 
-import { User, Post } from '../../models';
+import { User, Post, Role } from '../../models';
 import { UpdateUserInput } from './dto/update-user.input';
 import { ChangePasswordInput } from './dto/change-password.input';
 
@@ -58,5 +58,10 @@ export class UserResolver {
         where: { id: author.id },
       })
       .posts();
+  }
+
+  @ResolveField('role', () => Role)
+  role(@Parent() { id }: User) {
+    return this.prisma.user.findUnique({ where: { id } }).role();
   }
 }

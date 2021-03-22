@@ -1,6 +1,6 @@
 FROM node:14-alpine as BUILD
 
-WORKDIR /var/www/web
+WORKDIR /var/www/backend
 
 COPY . ./
 
@@ -9,12 +9,10 @@ RUN export NODE_ENV=production && \
   yarn build && \
   yarn remove prisma --prod -s
 
-FROM alpine:latest
+FROM keymetrics/pm2:14-alpine
 
-RUN apk add --no-cache --update nodejs yarn
-
-COPY --from=BUILD /var/www/web /
+COPY --from=BUILD /var/www/backend /
 
 EXPOSE 9000
 
-CMD ["yarn", "start"]
+CMD ["pm2-runtime", "start", "pm2.json"]

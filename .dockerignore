@@ -37,7 +37,8 @@ test/
 .eslintrc.js
 
 # Git
-.git
+.git/
+.github/
 .gitignore
 
 # Docker
@@ -48,3 +49,6 @@ Dockerfile
 .env*
 LICENCE
 README.md
+
+# Developement Database
+db/

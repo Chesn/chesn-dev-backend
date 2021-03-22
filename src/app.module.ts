@@ -1,8 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GraphQLModule } from '@nestjs/graphql';
+import { GraphQLModule, GraphQLSchemaHost } from '@nestjs/graphql';
 
-import { AuthModule, PostModule, UserModule } from './resolvers';
+import {
+  AuthModule,
+  CategoryModule,
+  PermissionModule,
+  PostModule,
+  RoleModule,
+  UserModule,
+} from './resolvers';
+import { ComplexityPlugin } from './common/plugins/complexity.plugin';
 
 import config from './configs/config';
 import { GraphqlConfig } from './configs/config.interface';
@@ -29,11 +37,15 @@ import { GraphqlConfig } from './configs/config.interface';
           context: ({ req }) => ({ req }),
         };
       },
-      inject: [ConfigService],
+      inject: [ConfigService, GraphQLSchemaHost],
     }),
     AuthModule,
+    CategoryModule,
+    PermissionModule,
     PostModule,
+    RoleModule,
     UserModule,
   ],
+  providers: [ComplexityPlugin],
 })
 export class AppModule {}

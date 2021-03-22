@@ -1,10 +1,9 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType } from '@nestjs/graphql';
+
+import { BaseModel } from './base.model';
 
 @ObjectType()
-export class Permission {
-  @Field()
+export class Permission extends BaseModel {
   name!: string;
-
-  @Field()
   description?: string;
 }

@@ -14,6 +14,7 @@ type Auth {
 type Category {
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
+  description: String
   id: ID!
   name: String!
   posts: [Post!]!
@@ -27,14 +28,21 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
-input ChangePostStatusInput {
-  status: String!
+input CreatePermissionInput {
+  description: String
+  name: String!
 }
 
 input CreatePostInput {
-  category: String!
+  categoryName: String!
   content: String
   title: String!
+}
+
+input CreateRoleInput {
+  description: String
+  name: String!
+  permissionIds: [String!]
 }
 
 """
@@ -49,13 +57,18 @@ input LoginInput {
 
 type Mutation {
   changePassword(data: ChangePasswordInput!): User!
-  changePostStatus(data: ChangePostStatusInput!, id: String!): Post!
+  createPermission(data: CreatePermissionInput!): Permission!
   createPost(data: CreatePostInput!): Post!
+  createRole(data: CreateRoleInput!): Role!
+  deletePermission(id: String!): Permission!
   deletePost(id: String!): Post!
+  deleteRole(id: String!): Role!
   login(data: LoginInput!): Auth!
   refreshToken(token: String!): Token!
   signup(data: SignupInput!): Auth!
-  updatePost(data: UpdatePostInput!, id: String!): Post!
+  updatePermission(data: UpdatePermissionInput!): Permission!
+  updatePost(data: UpdatePostInput!): Post!
+  updateRole(data: UpdateRoleInput!): Role!
   updateUser(data: UpdateUserInput!): User!
 }
 
@@ -75,8 +88,14 @@ type PageInfo {
 }
 
 type Permission {
-  description: String!
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  description: String
+  id: ID!
   name: String!
+
+  """Identifies the date and time when the object was last updated."""
+  updatedAt: DateTime!
 }
 
 type Post {
@@ -106,13 +125,40 @@ type PostEdge {
 
 input PostOrder {
   direction: OrderDirection!
-  field: String!
+  field: PostOrderField!
+}
+
+"""Properties by which post connections can be ordered."""
+enum PostOrderField {
+  content
+  createdAt
+  id
+  published
+  title
+  updatedAt
+}
+
+"""Post status"""
+enum PostStatus {
+  ARCHIVED
+  DELETED
+  DRAFT
+  PUBLISHED
 }
 
 type Query {
+  categories: [Category!]!
+  category(id: String!): Category!
   me: User!
+  permission(id: String!): Permission!
+  permissions: [Permission!]!
   post(postId: String!): Post!
+  posts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): [Post!]!
   publishedPosts(after: String, before: String, first: Int, last: Int, orderBy: PostOrder, query: String, skip: Int): PostConnection!
+  queryCategories(query: String!): [Category!]!
+  role(id: String!): Role!
+  roles: [Role!]!
+  userPermissions(id: String!): [Permission!]!
   userPosts(userId: String!): [Post!]!
 }
 
@@ -143,9 +189,24 @@ type Token {
   refreshToken: String!
 }
 
+input UpdatePermissionInput {
+  description: String
+  id: String!
+  name: String
+}
+
 input UpdatePostInput {
   content: String
+  id: String!
+  status: PostStatus
   title: String
+}
+
+input UpdateRoleInput {
+  description: String
+  id: String!
+  name: String
+  permissionIds: [String!]
 }
 
 input UpdateUserInput {

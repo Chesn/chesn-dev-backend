@@ -1,10 +1,11 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType } from '@nestjs/graphql';
+
+import { PostStatus } from '../../../models';
 
 @InputType()
 export class UpdatePostInput {
-  @Field({ nullable: true })
+  id!: string;
+  status?: PostStatus;
   title?: string;
-
-  @Field({ nullable: true })
   content?: string;
 }
