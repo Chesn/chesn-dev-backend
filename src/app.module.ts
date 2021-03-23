@@ -34,7 +34,7 @@ import { GraphqlConfig } from './configs/config.interface';
             graphqlConfig?.schemaDestination || './src/schema.graphql',
           debug: graphqlConfig?.debug,
           playground: graphqlConfig?.playgroundEnabled,
-          context: ({ req }) => ({ req }),
+          context: ({ request, reply }) => ({ request, reply }),
         };
       },
       inject: [ConfigService, GraphQLSchemaHost],

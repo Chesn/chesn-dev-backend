@@ -1,3 +1,3 @@
 export interface JwtDto {
-  userId: string;
+  uid: string;
 }

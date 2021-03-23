@@ -7,14 +7,16 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '@prisma/client';
+import dayjs, { OpUnitType } from 'dayjs';
 
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from './prisma.service';
 import { PasswordService } from './password.service';
+import { GqlHttpContext } from '../common/context/http-context';
 
 import { Token } from '../models';
-import { SignupInput } from '../resolvers';
-import { SecurityConfig } from '../configs/config.interface';
+import { SignupInput, JwtDto } from '../resolvers';
+import { SecurityConfig, CookiesConfig } from '../configs/config.interface';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +26,33 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly configService: ConfigService,
   ) {}
+
+  static refreshTokenKey = 'refreshToken';
+
+  setRefreshCookie(context: GqlHttpContext, refreshToken: string) {
+    const host = context.request.headers.host as string;
+    const { path, httpOnly, secure, sameSite }: CookiesConfig =
+      this.configService.get<CookiesConfig>('cookies') || ({} as CookiesConfig);
+    const securityConfig = this.configService.get<SecurityConfig>('security');
+    const refreshIn = securityConfig?.refreshIn;
+    const expires: Date | undefined = refreshIn
+      ? dayjs()
+          .add(
+            parseInt(refreshIn),
+            refreshIn.slice(refreshIn.length - 1) as OpUnitType,
+          )
+          .toDate()
+      : undefined;
+
+    context.reply.setCookie(AuthService.refreshTokenKey, refreshToken, {
+      expires,
+      path,
+      domain: host.slice(host.indexOf('.')),
+      httpOnly,
+      secure,
+      sameSite,
+    });
+  }
 
   async createUser(payload: SignupInput): Promise<Token> {
     const hashedPassword = await this.passwordService.hashPassword(
@@ -44,7 +73,7 @@ export class AuthService {
       });
 
       return this.generateToken({
-        userId: user.id,
+        uid: user.id,
       });
     } catch (error) {
       if (
@@ -77,7 +106,7 @@ export class AuthService {
     }
 
     return this.generateToken({
-      userId: user.id,
+      uid: user.id,
     });
   }
 
@@ -86,30 +115,30 @@ export class AuthService {
   }
 
   getUserFromToken(token: string): Promise<User | null> {
-    const { userId } = this.jwtService.decode(token) as { userId: string };
+    const { uid } = this.jwtService.decode(token) as JwtDto;
 
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    return this.prisma.user.findUnique({ where: { id: uid } });
   }
 
-  generateToken(payload: { userId: string }): Token {
-    const accessToken = this.jwtService.sign(payload);
+  generateToken(payload: JwtDto): Token {
+    const token = this.jwtService.sign(payload);
 
     const securityConfig = this.configService.get<SecurityConfig>('security');
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: securityConfig?.expiresIn,
+      expiresIn: securityConfig?.refreshIn,
     });
 
     return {
-      accessToken,
+      token,
       refreshToken,
     };
   }
 
-  refreshToken(token: string) {
+  refreshToken(token: string): Token {
     try {
-      const { userId } = this.jwtService.verify(token);
+      const { uid } = this.jwtService.verify(token) as JwtDto;
 
-      return this.generateToken({ userId });
+      return this.generateToken({ uid });
     } catch (error) {
       throw new UnauthorizedException();
     }

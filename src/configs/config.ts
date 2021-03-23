@@ -3,12 +3,17 @@ import { Config } from './config.interface';
 const isDev = process.env.NODE_ENV === 'development';
 
 const config: Config = {
-  nest: {
-    port: 9000,
-    host: '0.0.0.0',
-  },
+  nest: {},
   cors: {
-    enabled: !isDev,
+    enabled: true,
+    origin: ['chesn.dev', 'api.chesn.dev'],
+  },
+  cookies: {
+    enabled: true,
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
   },
   swagger: {
     enabled: isDev,
@@ -18,7 +23,7 @@ const config: Config = {
     path: 'api',
   },
   helmet: {
-    enabled: true,
+    enabled: false,
     directives: {
       defaultSrc: [`'self'`],
       styleSrc: [
@@ -34,12 +39,12 @@ const config: Config = {
   },
   graphql: {
     playgroundEnabled: isDev,
-    debug: isDev,
+    debug: false,
     schemaDestination: './src/schema.graphql',
     sortSchema: true,
   },
   security: {
-    expiresIn: '1h',
+    expiresIn: '2m',
     refreshIn: '7d',
     bcryptSaltOrRound: 10,
   },

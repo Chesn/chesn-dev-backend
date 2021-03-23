@@ -5,7 +5,10 @@ import { Post } from './post.model';
 
 @ObjectType()
 export class Category extends BaseModel {
+  @Field()
   name!: string;
+
+  @Field({ nullable: true })
   description?: string;
 
   @Field(() => [Post])

@@ -18,6 +18,7 @@ registerEnumType(PostStatus, {
 
 @ObjectType()
 export class Post extends BaseModel {
+  @Field()
   title!: string;
 
   @Field({ nullable: true })

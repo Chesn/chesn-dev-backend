@@ -12,6 +12,7 @@ import fastifyCookie from 'fastify-cookie';
 import fastifyCsrf from 'fastify-csrf';
 
 import {
+  CookiesConfig,
   CorsConfig,
   HelmetConfig,
   NestConfig,
@@ -32,6 +33,7 @@ import { AppModule } from './app.module';
   const configService = app.get(ConfigService);
   const nestConfig = configService.get<NestConfig>('nest');
   const corsConfig = configService.get<CorsConfig>('cors');
+  const cookiesConfig = configService.get<CookiesConfig>('cookies');
   const swaggerConfig = configService.get<SwaggerConfig>('swagger');
   const helmetConfig = configService.get<HelmetConfig>('helmet');
 
@@ -47,14 +49,18 @@ import { AppModule } from './app.module';
   }
 
   if (corsConfig?.enabled) {
-    app.enableCors();
+    app.enableCors({
+      origin: corsConfig.origin,
+    });
   }
 
-  app.register(fastifyCookie, {
-    secret: process.env.COOKIE_SECRET || 'abcdefg',
-  });
+  if (cookiesConfig?.enabled) {
+    app.register(fastifyCookie, {
+      secret: process.env.COOKIE_SECRET,
+    });
 
-  app.register(fastifyCsrf);
+    app.register(fastifyCsrf);
+  }
 
   if (helmetConfig?.enabled) {
     app.register(helmet, {

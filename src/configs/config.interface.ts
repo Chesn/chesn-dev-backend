@@ -1,18 +1,26 @@
+import { CookieSerializeOptions } from 'fastify-cookie';
+
 export interface Config {
-  nest: NestConfig;
-  cors: CorsConfig;
-  swagger: SwaggerConfig;
-  helmet: HelmetConfig;
-  graphql: GraphqlConfig;
-  security: SecurityConfig;
+  nest?: NestConfig;
+  cors?: CorsConfig;
+  cookies?: CookiesConfig;
+  swagger?: SwaggerConfig;
+  helmet?: HelmetConfig;
+  graphql?: GraphqlConfig;
+  security?: SecurityConfig;
 }
 
 export interface NestConfig {
-  port: number;
-  host: string;
+  port?: number;
+  host?: string;
 }
 
 export interface CorsConfig {
+  enabled: boolean;
+  origin: string[];
+}
+
+export interface CookiesConfig extends CookieSerializeOptions {
   enabled: boolean;
 }
 

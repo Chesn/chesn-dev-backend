@@ -1,12 +1,16 @@
+import { UnauthorizedException } from '@nestjs/common';
 import {
   Args,
   Mutation,
   Resolver,
   ResolveField,
   Parent,
+  Context,
 } from '@nestjs/graphql';
 
 import { AuthService } from '../../services';
+import { Cookie } from '../../decorators';
+import { GqlHttpContext } from '../../common/context/http-context';
 
 import { Auth, Token } from '../../models';
 import { SignupInput } from './dto/signup.input';
@@ -17,39 +21,58 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => Auth)
-  async signup(@Args('data') data: SignupInput): Promise<Token> {
+  async signup(
+    @Context() context: GqlHttpContext,
+    @Args('data') data: SignupInput,
+  ): Promise<Token> {
     data.email = data.email.toLowerCase();
 
-    const { accessToken, refreshToken } = await this.authService.createUser(
-      data,
-    );
+    const { token, refreshToken } = await this.authService.createUser(data);
+
+    this.authService.setRefreshCookie(context, refreshToken);
 
     return {
-      accessToken,
+      token,
       refreshToken,
     };
   }
 
   @Mutation(() => Auth)
-  async login(@Args('data') { email, password }: LoginInput): Promise<Token> {
-    const { accessToken, refreshToken } = await this.authService.login(
+  async login(
+    @Context() context: GqlHttpContext,
+    @Args('data') { email, password }: LoginInput,
+  ): Promise<Token> {
+    const { token, refreshToken } = await this.authService.login(
       email.toLowerCase(),
       password,
     );
 
+    this.authService.setRefreshCookie(context, refreshToken);
+
     return {
-      accessToken,
+      token,
       refreshToken,
     };
   }
 
   @Mutation(() => Token)
-  async refreshToken(@Args('token') token: string): Promise<Token> {
-    return this.authService.refreshToken(token);
+  async refreshToken(
+    @Context() context: GqlHttpContext,
+    @Cookie(AuthService.refreshTokenKey) tokenCookie: string,
+  ): Promise<Token> {
+    if (!tokenCookie) {
+      throw new UnauthorizedException('');
+    }
+
+    const { token, refreshToken } = this.authService.refreshToken(tokenCookie);
+
+    this.authService.setRefreshCookie(context, refreshToken);
+
+    return { token, refreshToken };
   }
 
   @ResolveField('user')
   async user(@Parent() auth: Auth) {
-    return await this.authService.getUserFromToken(auth.accessToken);
+    return await this.authService.getUserFromToken(auth.token);
   }
 }

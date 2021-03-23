@@ -4,10 +4,7 @@
 
 type Auth {
   """JWT access token"""
-  accessToken: String!
-
-  """JWT refresh token"""
-  refreshToken: String!
+  token: String!
   user: User!
 }
 
@@ -64,7 +61,7 @@ type Mutation {
   deletePost(id: String!): Post!
   deleteRole(id: String!): Role!
   login(data: LoginInput!): Auth!
-  refreshToken(token: String!): Token!
+  refreshToken: Token!
   signup(data: SignupInput!): Auth!
   updatePermission(data: UpdatePermissionInput!): Permission!
   updatePost(data: UpdatePostInput!): Post!
@@ -125,25 +122,7 @@ type PostEdge {
 
 input PostOrder {
   direction: OrderDirection!
-  field: PostOrderField!
-}
-
-"""Properties by which post connections can be ordered."""
-enum PostOrderField {
-  content
-  createdAt
-  id
-  published
-  title
-  updatedAt
-}
-
-"""Post status"""
-enum PostStatus {
-  ARCHIVED
-  DELETED
-  DRAFT
-  PUBLISHED
+  field: String!
 }
 
 type Query {
@@ -183,10 +162,7 @@ input SignupInput {
 
 type Token {
   """JWT access token"""
-  accessToken: String!
-
-  """JWT refresh token"""
-  refreshToken: String!
+  token: String!
 }
 
 input UpdatePermissionInput {
@@ -198,7 +174,7 @@ input UpdatePermissionInput {
 input UpdatePostInput {
   content: String
   id: String!
-  status: PostStatus
+  status: String
   title: String
 }
 
